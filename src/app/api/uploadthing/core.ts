@@ -4,8 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 
 const f = createUploadthing();
 
-const handleAuth = () => {
-    const { userId } = auth()
+const handleAuth = async () => {
+    const { userId } = await auth()
     if (!userId) throw new Error('Unauthorized')
     return { userId: userId }
 }
@@ -15,11 +15,11 @@ export const ourFileRouter = {
     // Define as many FileRoutes as you like, each with a unique routeSlug
     serverImage: f({ image: { maxFileSize: "4MB" } })
         // Set permissions and file types for this FileRoute
-        .middleware(() => handleAuth())
+        .middleware(async () => await handleAuth())
         .onUploadComplete(() => { }),
 
     messageFile: f(['image', 'pdf'])
-        .middleware(() => handleAuth())
+        .middleware(async () => await handleAuth())
         .onUploadComplete(() => { })
 } satisfies FileRouter;
 

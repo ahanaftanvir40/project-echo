@@ -11,17 +11,21 @@ import React from 'react'
 
 
 
-async function MemberIdPage({ params, searchParams }: { params: { memberId: string, serverId: string }, searchParams: { video?: boolean } }) {
+async function MemberIdPage({ params, searchParams }: { params: Promise<{ memberId: string, serverId: string }>, searchParams: Promise<{ video?: boolean }> }) {
 
   const profile = await currentProfile()
 
   if (!profile) {
-    return auth().redirectToSignIn()
+    const { redirectToSignIn } = await auth()
+    return redirectToSignIn()
   }
+
+  const { memberId, serverId } = await params
+  const { video } = await searchParams
 
   const currentMember = await db.member.findFirst({
     where: {
-      serverId: params.serverId,
+      serverId: serverId,
       profileId: profile.id
 
     },
@@ -34,10 +38,10 @@ async function MemberIdPage({ params, searchParams }: { params: { memberId: stri
     return redirect('/main')
   }
 
-  const conversation = await getOrCreateConversation(currentMember.id, params.memberId)
+  const conversation = await getOrCreateConversation(currentMember.id, memberId)
 
   if (!conversation) {
-    return redirect(`/servers/${params.serverId}`)
+    return redirect(`/servers/${serverId}`)
   }
 
   const { memberOne, memberTwo } = conversation
@@ -48,18 +52,18 @@ async function MemberIdPage({ params, searchParams }: { params: { memberId: stri
       <ChatHeader
         imageUrl={otherMember.profile.imageUrl}
         name={otherMember.profile.name}
-        serverId={params.serverId}
+        serverId={serverId}
         type='conversation'
 
       />
-      {searchParams.video && (
+      {video && (
         <MediaRoom
           chatId={conversation.id}
           video={true}
           audio={true}
         />
       )}
-      {!searchParams.video && (
+      {!video && (
         <>
           <ChatMessages
             member={currentMember}

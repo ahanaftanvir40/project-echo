@@ -5,23 +5,26 @@ import { redirect } from 'next/navigation'
 import React from 'react'
 
 interface InviteCodePageProps {
-    params: { inviteCode: string }
+    params: Promise<{ inviteCode: string }>
 }
 
 async function InviteCodePage({ params }: InviteCodePageProps) {
 
     const profile = await currentProfile()
     if (!profile) {
-        return auth().redirectToSignIn()
+        const { redirectToSignIn } = await auth()
+        return redirectToSignIn()
     }
 
-    if (!params.inviteCode) {
+    const { inviteCode } = await params
+
+    if (!inviteCode) {
         return redirect('/main')
     }
 
     const existingServer = await db.server.findFirst({
         where: {
-            inviteCode: params.inviteCode,
+            inviteCode: inviteCode,
             members: {
                 some: {
                     profileId: profile.id
@@ -36,7 +39,7 @@ async function InviteCodePage({ params }: InviteCodePageProps) {
 
     const server = await db.server.update({
         where: {
-            inviteCode: params.inviteCode
+            inviteCode: inviteCode
         },
         data: {
             members: {

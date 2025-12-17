@@ -6,11 +6,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 
-export async function DELETE(req: NextRequest, { params }: { params: { channelId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
     try {
         const profile = await currentProfile()
         const { searchParams } = req.nextUrl
         const serverId = searchParams.get('serverId')
+        const { channelId } = await params
 
         if (!profile) {
             return new NextResponse('Unauthorized', { status: 401 })
@@ -20,7 +21,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { channelId
             return new NextResponse('No Server ID', { status: 400 })
         }
 
-        if (!params.channelId) {
+        if (!channelId) {
             return new NextResponse('No Channel ID', { status: 400 })
         }
 
@@ -39,7 +40,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { channelId
             data: {
                 channels: {
                     delete: {
-                        id: params.channelId,
+                        id: channelId,
                         name: {
                             not: 'general'
                         }
@@ -58,12 +59,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { channelId
 
 
 
-export async function PATCH(req: NextRequest, { params }: { params: { channelId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
     try {
         const profile = await currentProfile()
         const { name, type } = await req.json()
         const { searchParams } = req.nextUrl
         const serverId = searchParams.get('serverId')
+        const { channelId } = await params
 
         if (!profile) {
             return new NextResponse('Unauthorized', { status: 401 })
@@ -73,7 +75,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { channelId:
             return new NextResponse('No Server ID', { status: 400 })
         }
 
-        if (!params.channelId) {
+        if (!channelId) {
             return new NextResponse('No Channel ID', { status: 400 })
         }
 
@@ -97,7 +99,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { channelId:
                 channels: {
                     update: {
                         where: {
-                            id: params.channelId,
+                            id: channelId,
                             NOT: {
                                 name: 'general'
                             }

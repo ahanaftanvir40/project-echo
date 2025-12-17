@@ -7,19 +7,22 @@ import React from 'react'
 
 async function ServerLayout({ children, params }: {
     children: React.ReactNode
-    params: { serverId: string }
+    params: Promise<{ serverId: string }>
 
 }) {
 
     const profile = await currentProfile()
 
     if (!profile) {
-        return auth().redirectToSignIn()
+        const { redirectToSignIn } = await auth()
+        return redirectToSignIn()
     }
+
+    const { serverId } = await params
 
     const server = db.server.findUnique({
         where: {
-            id: params.serverId,
+            id: serverId,
             members: {
                 some: {
                     profileId: profile.id
@@ -38,7 +41,7 @@ async function ServerLayout({ children, params }: {
     return (
         <div className='h-full'>
             <div className='hidden md:flex h-full w-60 z-20 flex-col fixed inset-y-0'>
-                <ServerSidebar serverId = {params.serverId} />
+                <ServerSidebar serverId = {serverId} />
             </div>
 
             <main className='min-h-screen md:pl-60 '>

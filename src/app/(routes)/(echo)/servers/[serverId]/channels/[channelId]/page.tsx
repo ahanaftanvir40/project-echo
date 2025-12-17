@@ -9,23 +9,26 @@ import { ChannelType } from '@prisma/client'
 import { redirect } from 'next/navigation'
 import React, { useEffect } from 'react'
 
-async function ChannelIdPage({ params }: { params: { serverId: string, channelId: string } }) {
+async function ChannelIdPage({ params }: { params: Promise<{ serverId: string, channelId: string }> }) {
 
   const profile = await currentProfile()
 
   if (!profile) {
-    return auth().redirectToSignIn()
+    const { redirectToSignIn } = await auth()
+    return redirectToSignIn()
   }
+
+  const { serverId, channelId } = await params
 
   const channel = await db.channel.findUnique({
     where: {
-      id: params.channelId
+      id: channelId
     }
   })
 
   const member = await db.member.findFirst({
     where: {
-      serverId: params.serverId,
+      serverId: serverId,
       profileId: profile.id
     }
   })

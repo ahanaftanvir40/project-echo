@@ -8,17 +8,20 @@ import React from 'react'
 //   para
 // }
 
-async function ServerIdPage({ params }: { params: { serverId: string } }) {
+async function ServerIdPage({ params }: { params: Promise<{ serverId: string }> }) {
 
   const profile = await currentProfile()
 
   if (!profile) {
-    return auth().redirectToSignIn()
+    const { redirectToSignIn } = await auth()
+    return redirectToSignIn()
   }
+
+  const { serverId } = await params
 
   const server = await db.server.findUnique({
     where: {
-      id: params.serverId,
+      id: serverId,
       members: {
         some: {
           profileId: profile.id
@@ -40,7 +43,7 @@ async function ServerIdPage({ params }: { params: { serverId: string } }) {
   const initialChannel = server?.channels[0]
 
   if (initialChannel?.name === 'general') {
-    return redirect(`/servers/${params.serverId}/channels/${initialChannel.id}`)
+    return redirect(`/servers/${serverId}/channels/${initialChannel.id}`)
   }
 
   return (

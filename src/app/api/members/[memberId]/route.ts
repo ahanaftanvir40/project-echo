@@ -4,12 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 
-export async function DELETE(req: NextRequest, { params }: { params: { memberId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ memberId: string }> }) {
     try {
 
         const profile = await currentProfile()
         const { searchParams } = req.nextUrl
         const serverId = searchParams.get('serverId')
+        const { memberId } = await params
 
         if (!profile) {
             return new NextResponse('Unauthorized', { status: 401 })
@@ -20,7 +21,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { memberId:
 
         }
 
-        if (!params.memberId) {
+        if (!memberId) {
             return new NextResponse('Member ID Missing', { status: 400 })
         }
 
@@ -32,7 +33,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { memberId:
             data: {
                 members: {
                     deleteMany: {
-                        id: params.memberId,
+                        id: memberId,
                         profileId: {
                             not: profile.id
                         }
@@ -60,12 +61,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { memberId:
 }
 
 
-export async function PATCH(req: NextRequest, { params }: { params: { memberId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ memberId: string }> }) {
     try {
 
         const profile = await currentProfile()
         const { searchParams } = req.nextUrl
         const { role } = await req.json()
+        const { memberId } = await params
 
         const serverId = searchParams.get('serverId')
 
@@ -78,7 +80,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { memberId: 
 
         }
 
-        if (!params.memberId) {
+        if (!memberId) {
             return new NextResponse('Member ID Missing', { status: 400 })
         }
 
@@ -91,7 +93,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { memberId: 
                 members: {
                     update: {
                         where: {
-                            id: params.memberId,
+                            id: memberId,
                             profileId: {
                                 not: profile.id
                             }
